@@ -1536,7 +1536,78 @@ input:checked+.slider-round:before {
 }
 
 /* --- Mobile Optimization (New Views) --- */
+/* --- Mobile Optimization (Comprehensive) --- */
+@media (max-width: 1024px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-sidebar {
+        margin-top: var(--space-xl);
+    }
+}
+
 @media (max-width: 768px) {
+    :root {
+        --sidebar-width: 260px;
+    }
+
+    /* Sidebar Mobile Transition */
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 2000;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding-bottom: 80px;
+        /* Space for bottom nav or just breathing room */
+    }
+
+    .header {
+        padding: 0 var(--space-md);
+    }
+
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        margin-right: var(--space-md);
+    }
+
+    .search-bar {
+        width: 100%;
+        max-width: none;
+    }
+
+    .header-right {
+        gap: var(--space-sm);
+    }
+
+    .user-info {
+        display: none;
+        /* Hide name/badge in header on mobile to save space */
+    }
+
+    /* Dashboard adjustments */
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
     /* Goals View Mobile */
     .goals-grid {
@@ -1613,10 +1684,11 @@ input:checked+.slider-round:before {
 
     /* Modals Mobile */
     .note-modal-large,
-    .modal-small {
+    .modal-small,
+    .modal {
         width: 95%;
         max-height: 90vh;
-        margin: 10px;
+        margin: 10px auto;
     }
 
     .note-toolbar {
@@ -1632,9 +1704,30 @@ input:checked+.slider-round:before {
         width: 100%;
         text-align: center;
     }
+
+    /* Overlay for mobile sidebar */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1999;
+        display: none;
+        backdrop-filter: blur(4px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
 }
 
 @media (max-width: 480px) {
+    .stats-summary {
+        grid-template-columns: 1fr;
+    }
+
     .profile-stats-summary {
         grid-template-columns: 1fr;
         /* Stack stats on very small screens */
@@ -1650,8 +1743,7 @@ input:checked+.slider-round:before {
         margin: 0 auto;
     }
 
-    .header .user-profile span {
-        display: none;
-        /* Hide name in header on small screens */
+    .header-right {
+        gap: var(--space-xs);
     }
 }

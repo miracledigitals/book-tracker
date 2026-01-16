@@ -1150,6 +1150,7 @@ function formatDate(dateStr) {
 
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
 }
 
 function showUserProfile() {
@@ -1163,7 +1164,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Navigation
     document.querySelectorAll('.nav-item[data-view]').forEach(item => {
-        item.addEventListener('click', () => showView(item.dataset.view));
+        item.addEventListener('click', () => {
+            showView(item.dataset.view);
+            // Close sidebar on mobile after navigation
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        });
     });
 
     // Library tabs
