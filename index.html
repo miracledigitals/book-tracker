@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina - Book Reading Tracker</title>
+    <meta name="description" content="Track your reading progress, manage your book library, and write reviews">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-extra.css">
+    <!-- Smart Import Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l6.9 3.45L12 11.09 5.1 7.63 12 4.18zM4 8.82l7 3.5v7.86l-7-3.5V8.82zm9 11.36v-7.86l7-3.5v7.86l-7 3.5z" />
+                </svg>
+                <span>Lumina</span>
+            </div>
+            <div class="current-streak">Current Streak: <span id="streakDays">0</span> Days</div>
+
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-view="dashboard">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                    </svg>
+                    Dashboard
+                </a>
+                <a class="nav-item" data-view="library">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z" />
+                    </svg>
+                    My Library
+                </a>
+                <a class="nav-item" data-view="goals">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                    Reading Goals
+                </a>
+                <a class="nav-item" data-view="stats">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
+                    </svg>
+                    Reading Stats
+                </a>
+                <a class="nav-item" data-view="settings">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                    </svg>
+                    Settings
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="pro-badge">
+                    <div class="pro-badge-label">Pro Plan</div>
+                    <div class="pro-badge-text">Unlimited Syncing</div>
+                    <div class="pro-badge-bar">
+                        <div class="pro-badge-bar-fill"></div>
+                    </div>
+                </div>
+                <button class="quick-add-btn" onclick="showView('add-book')">
+                    <span>+</span> Quick Add
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="search-bar">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <input type="text" placeholder="Search your library..." id="globalSearch">
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+                        </svg>
+                    </button>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">Reader</div>
+                            <div class="user-badge">Avid Reader</div>
+                        </div>
+                        <div class="user-avatar">JR</div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Dashboard View -->
+                <div class="view active" id="dashboard-view">
+                    <div class="dashboard-layout">
+                        <div class="dashboard-main">
+                            <div class="greeting">
+                                <h1 id="greeting">Good evening, Reader</h1>
+                                <p class="greeting-subtitle">You've read <span class="highlight" id="todayPages">0
+                                        pages</span> today. Keep it up!</p>
+                            </div>
+
+                            <div class="section-header">
+                                <h2>Currently Reading</h2>
+                                <a href="#" class="view-all-link" onclick="showView('library'); return false;">View
+                                    all</a>
+                            </div>
+                            <div class="books-grid" id="currentlyReadingGrid"></div>
+
+                            <div class="recent-finished">
+                                <div class="section-header">
+                                    <h2>Recent Finished</h2>
+                                </div>
+                                <div class="recent-finished-scroll" id="recentFinishedScroll"></div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-sidebar">
+                            <div class="goal-card">
+                                <div class="goal-header">
+                                    <span class="goal-label"><span id="goalYearDisplay">2024</span> Goal</span>
+                                    <span class="goal-progress-text" id="goalProgress">0/20</span>
+                                </div>
+                                <div class="goal-progress-bar">
+                                    <div class="goal-progress-fill" id="goalProgressBar" style="width: 0%"></div>
+                                </div>
+                                <div class="goal-subtitle" id="goalSubtitle">0% complete • 20 books to go</div>
+                            </div>
+
+                            <div class="activity-card">
+                                <h3>Activity</h3>
+                                <div class="activity-stat">
+                                    <div class="activity-stat-number" id="weeklyPages">0</div>
+                                    <div class="activity-stat-label">Pages read this week</div>
+                                </div>
+                                <div class="activity-chart" id="activityChart"></div>
+                                <div class="activity-days">
+                                    <span class="activity-day">MON</span>
+                                    <span class="activity-day">TUE</span>
+                                    <span class="activity-day">WED</span>
+                                    <span class="activity-day">THU</span>
+                                    <span class="activity-day">FRI</span>
+                                    <span class="activity-day">SAT</span>
+                                    <span class="activity-day">SUN</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Library View -->
+                <div class="view" id="library-view">
+                    <div class="library-tabs">
+                        <button class="library-tab active" data-filter="all">All Books</button>
+                        <button class="library-tab" data-filter="tbr">Want to Read</button>
+                        <button class="library-tab" data-filter="reading">Reading</button>
+                        <button class="library-tab" data-filter="finished">Finished</button>
+                    </div>
+
+                    <div class="library-filters">
+                        <div class="library-search">
+                            <input type="text" placeholder="Search titles, authors, or ISBN..." id="librarySearch">
+                        </div>
+                        <select class="filter-dropdown" id="genreFilter">
+                            <option value="">All Genres</option>
+                            <option value="fiction">Fiction</option>
+                            <option value="non-fiction">Non-Fiction</option>
+                            <option value="sci-fi">Sci-Fi</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="mystery">Mystery</option>
+                            <option value="romance">Romance</option>
+                            <option value="classic">Classic Literature</option>
+                        </select>
+                        <select class="filter-dropdown" id="ratingFilter">
+                            <option value="">All Ratings</option>
+                            <option value="5">★★★★★</option>
+                            <option value="4">★★★★☆ & up</option>
+                            <option value="3">★★★☆☆ & up</option>
+                        </select>
+                    </div>
+
+                    <div class="library-grid" id="libraryGrid"></div>
+
+                    <button class="fab" onclick="showView('add-book')">+</button>
+                </div>
+
+                <!-- Book Detail View -->
+                <div class="view" id="book-detail-view">
+                    <div class="book-detail">
+                        <div class="book-detail-left">
+                            <div class="breadcrumb">
+                                <a href="#" onclick="showView('library'); return false;">Library</a>
+                                <span>›</span>
+                                <span id="detailGenre">Genre</span>
+                                <span>›</span>
+                                <span id="detailBreadcrumbTitle">Book Title</span>
+                            </div>
+
+                            <div class="book-detail-cover">
+                                <img id="detailCover" src="" alt="Book cover">
+                                <div class="book-detail-status">
+                                    <span class="status-badge reading" id="detailStatus">Reading</span>
+                                </div>
+                            </div>
+
+                            <h1 class="book-detail-title" id="detailTitle">Book Title</h1>
+                            <p class="book-detail-author" id="detailAuthor">Author Name</p>
+
+                            <div class="book-meta">
+                                <div class="book-meta-row">
+                                    <span class="book-meta-label">ISBN</span>
+                                    <span class="book-meta-value" id="detailISBN">N/A</span>
+                                </div>
+                                <div class="book-meta-row">
+                                    <span class="book-meta-label">Genre</span>
+                                    <span class="book-meta-value" id="detailGenreValue">Fiction</span>
+                                </div>
+                                <div class="book-meta-row">
+                                    <span class="book-meta-label">Pages</span>
+                                    <span class="book-meta-value" id="detailPages">0 pages</span>
+                                </div>
+                                <div class="book-meta-row">
+                                    <span class="book-meta-label">Language</span>
+                                    <span class="book-meta-value">English</span>
+                                </div>
+                            </div>
+
+                            <div class="book-detail-actions">
+                                <button class="btn btn-primary" onclick="openReviewModal()">
+                                    📝 Start Review
+                                </button>
+                                <button class="btn btn-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="book-detail-right">
+                            <div class="progress-card">
+                                <div class="progress-header">
+                                    <div>
+                                        <div class="progress-label">Your Progress</div>
+                                        <div class="progress-percentage" id="detailProgressPercent">0%</div>
+                                        <div class="progress-pages" id="detailProgressPages">0 of 0 pages</div>
+                                    </div>
+                                    <div class="progress-estimate">
+                                        <div class="progress-estimate-label">Estimated completion</div>
+                                        <div class="progress-estimate-value" id="detailEstimate">-</div>
+                                    </div>
+                                </div>
+
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-large">
+                                        <div class="progress-bar-fill" id="detailProgressBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="update-progress">
+                                    <div class="update-progress-header">
+                                        <span>Update Current Page</span>
+                                        <span class="page-number" id="currentPageDisplay">Page 0</span>
+                                    </div>
+                                    <input type="range" class="progress-slider" id="progressSlider" min="0" max="100"
+                                        value="0">
+
+                                    <div id="chapterUpdateContainer"
+                                        style="display:none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                                        <div class="update-progress-header">
+                                            <span>Current Chapter</span>
+                                        </div>
+                                        <select id="chapterSelector" class="form-control"
+                                            onchange="updateBookChapter(this.value)"
+                                            style="width: 100%; background: var(--bg-input);">
+                                            <!-- Populated by JS -->
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button class="btn-update" onclick="updateProgress()">
+                                    📖 Update Progress
+                                </button>
+                            </div>
+
+                            <div class="sessions-card">
+                                <div class="section-header">
+                                    <h2>Recent Sessions</h2>
+                                    <a href="#" class="view-all-link">View all</a>
+                                </div>
+                                <div class="sessions-list" id="sessionsList"></div>
+                            </div>
+
+                            <div class="sessions-card">
+                                <div class="section-header">
+                                    <h2>Reading Notes</h2>
+                                    <a href="#" class="view-all-link" onclick="openNoteModal(); return false;">Add
+                                        Note</a>
+                                </div>
+                                <div class="notes-container" id="notesContainer"></div>
+                            </div>
+
+                            <div class="action-cards">
+                                <div class="action-card" onclick="openNoteModal()">
+                                    <div class="action-card-icon">📝</div>
+                                    <div class="action-card-title">Add Note</div>
+                                    <div class="action-card-subtitle">Capture thoughts on Chapter 5</div>
+                                </div>
+                                <div class="action-card">
+                                    <div class="action-card-icon">🏆</div>
+                                    <div class="action-card-title">Challenge</div>
+                                    <div class="action-card-subtitle">Finish by end of week (+50pts)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals View -->
+                <div class="view" id="goals-view">
+                    <div class="goals-layout">
+                        <div class="goals-header">
+                            <h1>Reading Goals</h1>
+                            <p>Set and track your yearly and monthly reading milestones.</p>
+                        </div>
+                        <div class="goals-grid">
+                            <div class="goal-setting-card">
+                                <h3>Yearly Challenge</h3>
+                                <div class="goal-input-group">
+                                    <label>Books to read in <span id="goalSettingYear">2024</span></label>
+                                    <input type="number" id="yearlyGoalInput" value="20" min="1">
+                                    <button class="btn btn-primary" onclick="updateYearlyGoal()">Save Goal</button>
+                                </div>
+                                <div class="goal-stats">
+                                    <div class="goal-stat">
+                                        <div class="goal-stat-val" id="goalsFinishedCount">0</div>
+                                        <div class="goal-stat-label">Finished</div>
+                                    </div>
+                                    <div class="goal-stat">
+                                        <div class="goal-stat-val" id="goalsRemainingCount">20</div>
+                                        <div class="goal-stat-label">Remaining</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="goal-setting-card">
+                                <h3>Monthly Target</h3>
+                                <div class="goal-input-group">
+                                    <label>Pages per day goal</label>
+                                    <input type="number" id="dailyPageGoalInput" value="30" min="1">
+                                    <button class="btn btn-primary" onclick="updateDailyPageGoal()">Set Target</button>
+                                </div>
+                                <div class="milestone-list">
+                                    <div class="milestone-item achieved">
+                                        <div class="milestone-icon">🏆</div>
+                                        <div class="milestone-info">
+                                            <div class="milestone-title">First Book Finished</div>
+                                            <div class="milestone-date">Achieved Jan 15</div>
+                                        </div>
+                                    </div>
+                                    <div class="milestone-item">
+                                        <div class="milestone-icon">🥈</div>
+                                        <div class="milestone-info">
+                                            <div class="milestone-title">5 Book Milestone</div>
+                                            <div class="milestone-progress">0/5 Books</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats View -->
+                <div class="view" id="stats-view">
+                    <div class="stats-layout">
+                        <div class="stats-header">
+                            <h1>Reading Insights</h1>
+                            <p>Analyze your reading habits and library distribution.</p>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stats-card full-width">
+                                <h3>Monthly Progress (Pages Read)</h3>
+                                <div class="stats-chart-container" id="monthlyPagesChart">
+                                    <!-- Dynamic SVG Content -->
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <h3>Genre Distribution</h3>
+                                <div class="stats-pie-container" id="genreDistributionChart">
+                                    <!-- Dynamic Pie Chart -->
+                                </div>
+                                <div class="stats-legend" id="genreLegend"></div>
+                            </div>
+                            <div class="stats-card">
+                                <h3>Rating Overview</h3>
+                                <div class="stats-bar-container" id="ratingDistributionChart">
+                                    <!-- Dynamic Rating Bars -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings View -->
+                <div class="view" id="settings-view">
+                    <div class="settings-layout">
+                        <div class="settings-header">
+                            <h1>Settings</h1>
+                            <p>Manage your account preferences and data library.</p>
+                        </div>
+                        <div class="settings-sections">
+                            <div class="settings-section">
+                                <h3>System Preferences</h3>
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <div class="settings-item-title">Push Notifications</div>
+                                        <div class="settings-item-desc">Get alerts for daily reading goals and streaks
+                                        </div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="notifToggle" checked>
+                                        <span class="slider-round"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <div class="settings-item-title">Public Profile</div>
+                                        <div class="settings-item-desc">Allow others to see your library and reviews
+                                        </div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="privacyToggle">
+                                        <span class="slider-round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="settings-section">
+                                <h3>Data Management</h3>
+                                <div class="data-actions">
+                                    <button class="btn btn-secondary" onclick="exportData()">📤 Export Library
+                                        (JSON)</button>
+                                    <button class="btn btn-secondary"
+                                        onclick="document.getElementById('importInput').click()">📥 Import
+                                        Library</button>
+                                    <input type="file" id="importInput" style="display:none"
+                                        onchange="importData(event)">
+                                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ Reset All Data</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile View -->
+                <div class="view" id="profile-view">
+                    <div class="profile-layout">
+                        <div class="profile-header-large">
+                            <div class="profile-avatar-large">JR</div>
+                            <div class="profile-info-large">
+                                <h1 id="profileName">Julianne Reed</h1>
+                                <p id="profileTitle">Avid Reader</p>
+                                <div class="profile-actions-inline">
+                                    <button class="btn btn-secondary btn-small" onclick="toggleEditProfile()">Edit
+                                        Profile</button>
+                                    <button class="btn btn-secondary btn-small"
+                                        onclick="document.getElementById('avatarInput').click()">Change Picture</button>
+                                    <input type="file" id="avatarInput" accept="image/*" style="display: none"
+                                        onchange="handleAvatarUpload(event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-edit-form" id="profileEditForm" style="display: none;">
+                            <div class="form-group">
+                                <label>Display Name</label>
+                                <input type="text" id="editName" value="Julianne Reed">
+                            </div>
+                            <div class="form-group">
+                                <label>Reading Title</label>
+                                <input type="text" id="editTitle" value="Avid Reader">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Short Bio</label>
+                                <textarea
+                                    id="editBio">Lover of classics and sci-fi. Always chasing the next great story.</textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-secondary" onclick="toggleEditProfile()">Cancel</button>
+                                <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+                            </div>
+                        </div>
+
+                        <div class="profile-content">
+                            <div class="profile-bio-card">
+                                <h3>About Me</h3>
+                                <p id="profileBioDisplay">Lover of classics and sci-fi. Always chasing the next great
+                                    story.</p>
+                            </div>
+
+                            <div class="profile-danger-zone">
+                                <h3>Account Management</h3>
+                                <div class="danger-actions">
+                                    <button class="btn btn-outline" onclick="confirmRestartProfile()">Restart Profile
+                                        (Clear Stats)</button>
+                                    <button class="btn btn-danger" onclick="confirmDeleteProfile()">Delete All
+                                        Data</button>
+                                </div>
+                            </div>
+
+                            <div class="profile-stats-summary">
+                                <div class="p-stat">
+                                    <div class="p-stat-val" id="totalBooksRead">0</div>
+                                    <div class="p-stat-label">Books Read</div>
+                                </div>
+                                <div class="p-stat">
+                                    <div class="p-stat-val" id="totalPageCount">0</div>
+                                    <div class="p-stat-label">Total Pages</div>
+                                </div>
+                                <div class="p-stat">
+                                    <div class="p-stat-val" id="avgRating">0.0</div>
+                                    <div class="p-stat-label">Avg Rating</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Book View -->
+                <div class="view" id="add-book-view">
+                    <div class="add-book-view">
+                        <div class="add-book-header">
+                            <h1>Add a New Book</h1>
+                            <p>Search our database or enter details manually to track your progress.</p>
+                        </div>
+
+                        <div class="add-book-search">
+                            <input type="text" placeholder="🔍 Search by Title, Author, or ISBN" id="bookSearchInput">
+                            <div class="search-results" id="searchResults" style="display: none;"></div>
+                        </div>
+
+                        <div class="smart-import-section">
+                            <div class="file-drop-zone" onclick="document.getElementById('smartImportInput').click()"
+                                id="dropZone">
+                                <input type="file" id="smartImportInput" accept=".pdf,.epub" style="display:none"
+                                    onchange="handleSmartImport(event)">
+                                <div class="drop-icon">📂</div>
+                                <div class="drop-text">
+                                    <strong>Smart Import</strong>
+                                    <span>Upload PDF or EPUB to auto-fill details</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider">
+                            <span>Or Enter Details Manually</span>
+                        </div>
+
+                        <div class="add-book-form">
+                            <div class="cover-upload" id="coverUpload"
+                                onclick="document.getElementById('coverInput').click()">
+                                <input type="file" id="coverInput" accept="image/*" style="display: none"
+                                    onchange="handleCoverUpload(event)">
+                                <div class="cover-upload-icon">📷</div>
+                                <div class="cover-upload-text">Scan Cover</div>
+                                <div class="cover-upload-hint">Click to upload or drag book cover</div>
+                            </div>
+
+                            <div class="manual-entry">
+                                <h3>Manual Entry</h3>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="bookTitle">Book Title</label>
+                                        <input type="text" id="bookTitle" placeholder="e.g. The Great Gatsby">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookAuthor">Author</label>
+                                        <input type="text" id="bookAuthor" placeholder="e.g. F. Scott Fitzgerald">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookPages">Total Pages</label>
+                                        <input type="number" id="bookPages" placeholder="e.g. 350" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookChapters">Total Chapters (Optional)</label>
+                                        <input type="number" id="bookChapters" placeholder="e.g. 20">
+                                    </div>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label for="bookGenre">Genre</label>
+                                    <select id="bookGenre">
+                                        <option value="">Select a genre</option>
+                                        <option value="fiction">Fiction</option>
+                                        <option value="non-fiction">Non-Fiction</option>
+                                        <option value="sci-fi">Sci-Fi</option>
+                                        <option value="fantasy">Fantasy</option>
+                                        <option value="mystery">Mystery</option>
+                                        <option value="romance">Romance</option>
+                                        <option value="classic">Classic Literature</option>
+                                        <option value="biography">Biography</option>
+                                        <option value="theology">Theology/Christian</option>
+                                        <option value="self-help">Self-Help</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="bookDescription">Description (Optional)</label>
+                                    <textarea id="bookDescription" placeholder="Write a short summary..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-secondary" onclick="showView('library')">Cancel</button>
+                                <button class="btn btn-primary" onclick="addBook()">
+                                    📚 Add to Library
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </main>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Write a Review</h2>
+                <button class="modal-close" onclick="closeReviewModal()">×</button>
+            </div>
+            <div class="rating-input" id="ratingInput"></div>
+            <textarea class="review-textarea" id="reviewText"
+                placeholder="Share your thoughts about this book..."></textarea>
+            <button class="btn btn-primary" style="width: 100%" onclick="saveReview()">Save Review</button>
+        </div>
+    </div>
+
+    <!-- Note Modal (Rich Text) -->
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal note-modal-large">
+            <div class="modal-header">
+                <h2>Add Reading Note</h2>
+                <button class="modal-close" onclick="closeNoteModal()">×</button>
+            </div>
+            <div class="note-editor-container">
+                <div class="note-toolbar">
+                    <button class="toolbar-btn" onclick="execCmd('bold')" title="Bold"><b>B</b></button>
+                    <button class="toolbar-btn" onclick="execCmd('italic')" title="Italic"><i>I</i></button>
+                    <button class="toolbar-btn" onclick="execCmd('underline')" title="Underline"><u>U</u></button>
+                    <button class="toolbar-btn" onclick="execCmd('insertUnorderedList')" title="Bullet List">•
+                        List</button>
+                    <button class="toolbar-btn" onclick="execCmd('formatBlock', 'h3')" title="Heading">H</button>
+                </div>
+                <div class="note-editable" id="noteRichEditor" contenteditable="true"
+                    placeholder="Start typing your thoughts..."></div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeNoteModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h2>Confirm Delete</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">×</button>
+            </div>
+            <p id="deleteConfirmMsg">Are you sure you want to delete this book? This action cannot be undone.</p>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding View -->
+    <div class="onboarding-overlay" id="onboardingView" style="display: none;">
+        <div class="onboarding-card">
+            <div class="onboarding-icon">✨</div>
+            <h1>Welcome to Lumina</h1>
+            <p>Your personal companion for tracking reading progress and building a library of enhanced notes.</p>
+
+            <div class="onboarding-form">
+                <div class="form-group">
+                    <label>What should we call you?</label>
+                    <input type="text" id="setupName" placeholder="Your Name">
+                </div>
+
+                <div class="form-group">
+                    <label>Choose a Reading Title</label>
+                    <input type="text" id="setupTitle" placeholder="e.g. Bookworm, Avid Reader, Bibliophile"
+                        value="Book Enthusiast">
+                </div>
+
+                <div class="form-group">
+                    <label>Set your first goal (Books per Year)</label>
+                    <input type="number" id="setupGoal" value="12" min="1">
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Short Bio (Optional)</label>
+                    <textarea id="setupBio" placeholder="Tell us a bit about your reading interests..."></textarea>
+                </div>
+
+                <button class="btn btn-primary btn-large" onclick="completeOnboarding()">Start Your Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Set worker path for PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <script src="app.js"></script>
+</body>
+
+</html>
