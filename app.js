@@ -1557,6 +1557,98 @@ searchStyles.textContent = `
 `;
 document.head.appendChild(searchStyles);
 
+// Inject Cover Search Styles
+const coverSearchStyles = document.createElement('style');
+coverSearchStyles.textContent = `
+.search-cover-btn { margin-top: var(--space-md); font-size: 0.8rem; padding: 6px 12px; position: relative; z-index: 10; }
+.cover-search-results {
+    position: absolute; top: 105%; left: 0; right: 0;
+    background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md); max-height: 250px; overflow-y: auto;
+    z-index: 150; padding: var(--space-sm); display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: var(--space-sm);
+    box-shadow: var(--shadow-lg);
+}
+.cover-result-item { cursor: pointer; border-radius: 4px; overflow: hidden; transition: transform 0.2s; border: 2px solid transparent; }
+.cover-result-item:hover { transform: scale(1.05); border-color: var(--accent-primary); }
+.cover-result-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
+`;
+document.head.appendChild(coverSearchStyles);
+
+async function searchCoverOnline(e) {
+    if (e) e.stopPropagation();
+
+    const title = document.getElementById('bookTitle').value.trim();
+    const author = document.getElementById('bookAuthor').value.trim();
+    const resultsContainer = document.getElementById('coverSearchResults');
+
+    if (!title) {
+        showToast('Please enter a title first', 'info');
+        return;
+    }
+
+    resultsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 20px;">Searching...</div>';
+    resultsContainer.style.display = 'grid';
+
+    try {
+        const query = encodeURIComponent(`${title} ${author}`);
+        const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=9`);
+        const data = await response.json();
+
+        if (!data.items || data.items.length === 0) {
+            resultsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 20px;">No covers found</div>';
+            return;
+        }
+
+        resultsContainer.innerHTML = '';
+        data.items.forEach(item => {
+            const info = item.volumeInfo;
+            const coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
+
+            if (coverUrl) {
+                // Use higher res if possible by removing curl & zoom
+                const highResUrl = coverUrl.replace('&edge=curl', '').replace('zoom=1', 'zoom=2');
+
+                const div = document.createElement('div');
+                div.className = 'cover-result-item';
+                div.innerHTML = `<img src="${highResUrl}" alt="Cover">`;
+                div.onclick = (event) => {
+                    event.stopPropagation();
+                    selectCover(highResUrl);
+                };
+                resultsContainer.appendChild(div);
+            }
+        });
+
+        if (resultsContainer.innerHTML === '') {
+            resultsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 20px;">No covers found</div>';
+        }
+
+        // Close when clicking outside
+        const closeResults = (event) => {
+            if (!resultsContainer.contains(event.target) && event.target.className !== 'search-cover-btn') {
+                resultsContainer.style.display = 'none';
+                document.removeEventListener('click', closeResults);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeResults), 10);
+
+    } catch (error) {
+        console.error('Cover search failed:', error);
+        showToast('Failed to fetch covers', 'error');
+    }
+}
+
+function selectCover(url) {
+    uploadedCover = url;
+    const preview = document.getElementById('coverUpload');
+    if (preview) {
+        preview.innerHTML = `<img src="${url}" style="width:100%; height:100%; border-radius:inherit; object-fit:cover;">`;
+    }
+    document.getElementById('coverSearchResults').style.display = 'none';
+    showToast('Cover selected!', 'success');
+}
+
 function updateBookChapter(chapter) {
     if (!currentBookId) return;
 
